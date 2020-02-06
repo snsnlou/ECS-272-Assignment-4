@@ -19,6 +19,8 @@ var streamGraphInnerWidth, stremGraphInnerHeight
 
 var streamGraphSVG = null
 
+var selectedStream = -1
+
 function initStreamGraph() {
     streamGraphInnerWidth = streamGraphWidth - streamGraphMargin.left - streamGraphMargin.right
     streamGraphInnerHeight = streamGraphHeight - streamGraphMargin.top - streamGraphMargin.bottom
@@ -116,23 +118,50 @@ function initStreamGraph() {
 
     // Define mouse handlers
     var mouseOverHandlerStreamGraph = function(d, i) {
+        if(selectedStream != -1) return
         streamGraphSVG.selectAll('path')
             .transition()
             .duration(500)
             .style('opacity', function(d, j) {
                 if(j == i) return 1
-                return 0.3
+                return 0.6
             })
         d3.select(this)
             .style('stroke', 'black')
     }
 
     var mouseLeaveHandlerStreamGraph = function(d) {
+        if(selectedStream != -1) return
         streamGraphSVG.selectAll('path')
             .style('stroke', 'none')
             .transition()
             .duration(500)
             .style('opacity', 1)
+    }
+
+    var mouseClickHandlerStreamGraph = function(d, i) {
+        if(selectedStream != i) {
+            selectedStream = i
+            streamGraphSVG.selectAll('path')
+                .style('stroke', 'none')
+                .transition()
+                .duration(500)
+                .style('opacity', function(d, j) {
+                    if(j == i) return 1
+                    return 0.3
+                })
+            d3.select(this)
+                .style('stroke', 'black')
+        } else {
+            selectedStream = -1
+            streamGraphSVG.selectAll('path')
+                .transition()
+                .duration(500)
+                .style('opacity', function(d, j) {
+                    if(j == i) return 1
+                    return 0.6
+                })
+        }
     }
     
     streamGraphSVG.selectAll('path').remove()
@@ -144,6 +173,7 @@ function initStreamGraph() {
             .attr('d', area)
             .on('mouseover', mouseOverHandlerStreamGraph)
             .on('mouseleave', mouseLeaveHandlerStreamGraph)
+            .on('click', mouseClickHandlerStreamGraph)
     
     streamGraphSVG.append('g')
         .call(xAxisStreamGraph)
