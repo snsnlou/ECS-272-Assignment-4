@@ -1,14 +1,45 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <title>ECS 272 InfoVis Assignment 4</title>
+     <meta charset="utf-8"><title>ECS 272 InfoVis Assignment 4</title>
     <script src="https://d3js.org/d3.v5.min.js"></script>
 </head>
+    <style>
+    
+    .slice text {
+    	font-size: 12pt;
+    	font-family: Arial;
+   	}
+   	
+	
+	.tooltip {
+    	position: absolute;
+   		z-index: 10;
+   		box-shadow: 0 0 10px #999999;
+    	visibility: hidden;
+    	background-color: white;
+    	text-align: center;
+    	padding: 4px;
+    	border-radius: 4px;
+    	font-size: 14px;
+    	<!--font-weight: bold;-->
+    	color: black;
+	}
+	
+	</style>
 <body>
     <h2>ECS 272 InfoVis Assignment 4 (by Trevor Hu & Fred Lou)</h2>
     <div id = 'stream-graph'>
         <svg id = 'stream-graph-SVG'/>
     </div>
+
+
+    <script src="./scripts/d3.min.js"> </script>
+    <script src="./scripts/compromise.min.js"> </script>
+    <script src="./scripts/d3.layout.cloud.js"> </script>
     <script src="stream.js"></script>
+
 </body>
 </html>
+
+
