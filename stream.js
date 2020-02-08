@@ -18,8 +18,22 @@ var streamGraphHeight = 500
 var streamGraphInnerWidth, stremGraphInnerHeight
 
 var streamGraphSVG = null
+var pieChartSVG = null
+var wordCloudSVG = null
+
+var dropDown = document.getElementById('dropDown')
+
+var mouseOverHandlerStreamGraph = null
+var mouseClickHandlerStreamGraph = null
+var mouseLeaveHandlerStreamGraph = null
+
+var xScaleStreamGraph = null
+var yScaleStreamGraph = null
+var zScaleStreamGraph = null
 
 var selectedStream = -1
+
+var overviews = null
 
 function initStreamGraph() {
     streamGraphInnerWidth = streamGraphWidth - streamGraphMargin.left - streamGraphMargin.right
@@ -90,34 +104,15 @@ function initStreamGraph() {
     //     }
     // }
 
-    var xScaleStreamGraph = d3.scaleTime()
+    xScaleStreamGraph = d3.scaleTime()
         .range([0, streamGraphInnerWidth])
-    var yScaleStreamGraph = d3.scaleLinear()
+    yScaleStreamGraph = d3.scaleLinear()
         .range([streamGraphInnerHeight, 0])
-    var zScaleStreamGraph = d3.scaleOrdinal()
+    zScaleStreamGraph = d3.scaleOrdinal()
         .range(d3.schemeDark2)
     
-    var stack = d3.stack()
-        .offset(d3.stackOffsetSilhouette)
-        .keys(['unrated', 'awful', 'bad', 'so-so', 'good', 'excellent'])
-    
-    var layers = stack(dataByVote)
-    console.log(layers)
-    xScaleStreamGraph.domain(d3.extent(dataByVote, function(d) {return Date.parse(d['release\_date'])}))
-    yScaleStreamGraph.domain([-120, 120])
-
-    var xAxisStreamGraph = d3.axisBottom()
-        .scale(xScaleStreamGraph)
-    var yAxisStreamGraph = d3.axisLeft()
-        .scale(yScaleStreamGraph)
-    
-    var area = d3.area()
-        .x(function(d) {return xScaleStreamGraph(Date.parse(d.data['release\_date']))})
-        .y0(function(d) {return yScaleStreamGraph(d[0])})
-        .y1(function(d) {return yScaleStreamGraph(d[1])})
-
     // Define mouse handlers
-    var mouseOverHandlerStreamGraph = function(d, i) {
+    mouseOverHandlerStreamGraph = function(d, i) {
         if(selectedStream != -1) return
         streamGraphSVG.selectAll('path')
             .transition()
@@ -130,7 +125,7 @@ function initStreamGraph() {
             .style('stroke', 'black')
     }
 
-    var mouseLeaveHandlerStreamGraph = function(d) {
+    mouseLeaveHandlerStreamGraph = function(d) {
         if(selectedStream != -1) return
         streamGraphSVG.selectAll('path')
             .style('stroke', 'none')
@@ -139,7 +134,9 @@ function initStreamGraph() {
             .style('opacity', 1)
     }
 
-    var mouseClickHandlerStreamGraph = function(d, i) {
+    mouseClickHandlerStreamGraph = function(d, i) {
+        pieChartSVG.selectAll("*").remove();
+        wordCloudSVG.selectAll("*").remove();
         if(selectedStream != i) {
             selectedStream = i
             streamGraphSVG.selectAll('path')
@@ -152,6 +149,9 @@ function initStreamGraph() {
                 })
             d3.select(this)
                 .style('stroke', 'black')
+            console.log(overviews[i].length)
+            setTimeout("updatePie(overviews[" + i + "].join())", 500)
+            // updatePie(overviews[i].join())
         } else {
             selectedStream = -1
             streamGraphSVG.selectAll('path')
@@ -163,6 +163,50 @@ function initStreamGraph() {
                 })
         }
     }
+}
+
+function onChangeStreamGraph() {
+    var selectedAspect = dropDown.options[dropDown.selectedIndex].value;
+    console.log(selectedAspect)
+    var selectedData = null
+    var possibleKeys = null
+    if(selectedAspect == 'vote-average') {
+        selectedData = dataByVote
+        possibleKeys = ['unrated', 'awful', 'bad', 'so-so', 'good', 'excellent']
+        overviews = []
+        for(var i = 0; i < possibleKeys.length; i++) {
+            overviews.push([])
+        }
+        data.forEach(function(d) {
+            var voteAverage = parseInt(d['vote\_average'])
+            if(voteAverage == 0) overviews[0].push(d['overview'])
+            else if(voteAverage <= 2) overviews[1].push(d['overview'])
+            else if(voteAverage <= 4) overviews[2].push(d['overview'])
+            else if(voteAverage <= 6) overviews[3].push(d['overview'])
+            else if(voteAverage <= 8) overviews[4].push(d['overview'])
+            else return overviews[5].push(d['overview'])
+        })
+        console.log(overviews)
+    }
+    
+    var stack = d3.stack()
+        .offset(d3.stackOffsetSilhouette)
+        .keys(possibleKeys)
+    
+    var layers = stack(selectedData)
+    console.log(layers)
+    xScaleStreamGraph.domain(d3.extent(selectedData, function(d) {return Date.parse(d['release\_date'])}))
+    yScaleStreamGraph.domain([-120, 120])
+
+    var xAxisStreamGraph = d3.axisBottom()
+        .scale(xScaleStreamGraph)
+    var yAxisStreamGraph = d3.axisLeft()
+        .scale(yScaleStreamGraph)
+    
+    var area = d3.area()
+        .x(function(d) {return xScaleStreamGraph(Date.parse(d.data['release\_date']))})
+        .y0(function(d) {return yScaleStreamGraph(d[0])})
+        .y1(function(d) {return yScaleStreamGraph(d[1])})
     
     streamGraphSVG.selectAll('path').remove()
     streamGraphSVG.selectAll('path')
@@ -185,12 +229,12 @@ function initStreamGraph() {
 
 
 
-var overview1 = [];
-var overview2 = [];
-var overview3 = [];
-var overview4 = [];
-var overview5 = [];
-var overview6 = [];
+// var overview1 = [];
+// var overview2 = [];
+// var overview3 = [];
+// var overview4 = [];
+// var overview5 = [];
+// var overview6 = [];
 
 
 //second and third vis start from here
@@ -201,15 +245,15 @@ var tooltip = d3.select("body")
 
 
 
-var svg2 = d3.select("body").append("svg")
+pieChartSVG = d3.select("#pie-chart-SVG")
     .attr('width', 700)
     .attr('height', 500)
-    .attr("class", "svg2")
+    // .attr("class", "svg2")
     
-var svg3 = d3.select("body").append("svg")
+wordCloudSVG = d3.select("#word-cloud-SVG")
     .attr('width', 700)
     .attr('height', 500)
-    .attr("class", "svg3")
+    // .attr("class", "svg3")
 
 var width = 700;
 var height = 500;
@@ -244,39 +288,40 @@ var r = Math.min(700, 500) / 2.5,
 //         // });
 //         updatePie("I am right now having problem with it 100 yes 8u283y8 ni 78 882 2 ok yes incredible");
 // });
-d3.csv("./datasets/tmdb\_5000\_movies.csv").then(function(d) {
-    d.forEach(function(d){
-        if(d['vote\_average']== 0){
-            overview1.push(d['overview']);
-        }
-        else if(d['vote\_average']<=2 ){
-            overview2.push(d['overview']);
-        }
-        else if(d['vote\_average']<=4 ){
-            overview3.push(d['overview']);
-        }
-        else if(d['vote\_average']<=6 ){
-            overview4.push(d['overview']);
-        }
-        else if(d['vote\_average']<=8 ){
-            overview5.push(d['overview']);
-        }
-        else if(d['vote\_average']<=10 ){
-            overview6.push(d['overview']);
-        }
-    });
+// d3.csv("./datasets/tmdb\_5000\_movies.csv").then(function(d) {
+//     d.forEach(function(d){
+//         if(d['vote\_average']== 0){
+//             overview1.push(d['overview']);
+//         }
+//         else if(d['vote\_average']<=2 ){
+//             overview2.push(d['overview']);
+//         }
+//         else if(d['vote\_average']<=4 ){
+//             overview3.push(d['overview']);
+//         }
+//         else if(d['vote\_average']<=6 ){
+//             overview4.push(d['overview']);
+//         }
+//         else if(d['vote\_average']<=8 ){
+//             overview5.push(d['overview']);
+//         }
+//         else if(d['vote\_average']<=10 ){
+//             overview6.push(d['overview']);
+//         }
+//     });
 
-    // create a pie chart
-    updatePie(overview1.join());
-});
+//     // create a pie chart
+//     //updatePie("cabj 12 3v 3 objective name ");
+//     updatePie(overview6.join());
+// });
 
 
 // create and update the pie chart
 function updatePie(text){
-    svg2.selectAll("*").remove();
-    svg3.selectAll("*").remove();
+    pieChartSVG.selectAll("*").remove();
+    wordCloudSVG.selectAll("*").remove();
     // add a text instruction
-    svg2.append("g")
+    pieChartSVG.append("g")
         .append("text")
         .text(function(d){return "Select one term to reveal the word cloud below"})
         .attr("x", width / 2)
@@ -317,7 +362,7 @@ function updatePie(text){
     .outerRadius(r - 100)
     .innerRadius(r - 50);
     
-    var arc = svg2.selectAll(".slice")
+    var arc = pieChartSVG.selectAll(".slice")
         .data(pie(piedata))
         .enter()
         .append("g")
@@ -355,7 +400,7 @@ function updatePie(text){
         })
         
         .on("click", function(d, i){
-            svg3.selectAll("*").remove();
+            wordCloudSVG.selectAll("*").remove();
             
             // set the word cloud layout
             layout = d3.layout.cloud()
@@ -374,7 +419,7 @@ function updatePie(text){
 //third vis
 
 function draw(words, i) {
-    svg3.append("g")
+    wordCloudSVG.append("g")
         .append("text")
         .text(function(d){return "This is the word cloud of the " +" \"" + piedata[i].id + "\""+ " in the movie overview."})
         .attr("x", width / 2)
@@ -384,7 +429,7 @@ function draw(words, i) {
         .attr("font-size", "16px")
         .attr("fill", "black");
     
-    svg3.append("g")
+    wordCloudSVG.append("g")
         .attr("transform", "translate(" + 350 + "," + 250 + ")")
         .selectAll("text1")
         .data(words)
