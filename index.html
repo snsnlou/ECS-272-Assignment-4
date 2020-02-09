@@ -33,7 +33,13 @@
 		<select onchange = "onChangeStreamGraph()" id = 'dropDown'>
 			<option selected = 'true' disabled = 'disabled'>Please Select...</option>
 			<option value = 'vote-average'>Customer Ratings</option>
+			<option value = 'popularity'>Popularity</option>
 		</select><br/>
+		<p id = 'tooltip-stream-graph'>Select a stream to continue!</p>
+		<!-- <p>
+			<input type = 'button' value = '+' onclick = 'zoomIn()' id = 'zoomInButton'/>
+			<input type = 'button' value = '-' onclick = 'zoomOut()' id = 'zoomOutButton'/>
+		</p> -->
         <svg id = 'stream-graph-SVG'/>
 	</div>
 	<div id = 'pie-chart'>
