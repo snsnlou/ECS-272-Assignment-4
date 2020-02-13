@@ -8,6 +8,7 @@ d3.csv("./datasets/tmdb\_5000\_movies.csv").then(grandData => {
     })
     // console.log(data)
     initStreamGraph()
+    initBarChart()
 })
 
 // Config of stream graph
@@ -88,7 +89,7 @@ function initStreamGraph() {
     dataByVote.sort(function (a, b) {
         return parseInt(a['release\_date']) > parseInt(b['release\_date']) ? 1 : -1
     })
-    console.log(dataByVote)
+    // console.log(dataByVote)
     // Data by popularity
     popularities = []
     data.forEach(function (d) {
@@ -135,7 +136,7 @@ function initStreamGraph() {
     dataByPopularity.sort(function (a, b) {
         return parseInt(a['release\_date']) > parseInt(b['release\_date']) ? 1 : -1
     })
-    console.log(dataByPopularity)
+    // console.log(dataByPopularity)
     // console.log(d3.sum(dataByPopularity, function(d) {return d['very_unpopular']}))
     xScaleStreamGraph = d3.scaleTime()
         .range([0, streamGraphInnerWidth])
@@ -243,9 +244,8 @@ function onChangeStreamGraph() {
                 })
             d3.select(this)
                 .style('stroke', 'black')
-            console.log(overviews[i].length)
-            setTimeout("updatePie(overviews[" + i + "].join())", 500)
-            // updatePie(overviews[i].join())
+            // setTimeout("updatePie(overviews[" + i + "].join())", 500)
+            setTimeout("onChangeBarChart(overviews[" + i + "].join())", 500)
         } else {
             selectedStream = -1
             streamGraphSVG.selectAll('path')
@@ -396,15 +396,23 @@ function updatePie(text) {
         .attr("fill", "black");
 
     // NLP
-    if (text.length > 30000) {
-        text = text.substring(0, 30000);
-    }
-    topics = nlp(text).topics().slice(0, 50).out("frequency");
-    nouns = nlp(text).nouns().slice(0, 50).out("frequency");
-    dates = nlp(text).dates().slice(0, 50).out("frequency");
-    people = nlp(text).people().slice(0, 50).out("frequency");
-    verbs = nlp(text).verbs().slice(0, 50).out("frequency");
-    acronyms = nlp(text).acronyms().slice(0, 50).out("frequency");
+    // if (text.length > 30000) {
+    //     text = text.substring(0, 30000);
+    // }
+    console.log("Time start nlp: " + Date.now())
+
+    var NLP = nlp(text)
+
+    topics = NLP.topics().out("frequency");
+    nouns = NLP.nouns().out("frequency");
+    dates = NLP.dates().out("frequency");
+    people = NLP.people().out("frequency");
+    verbs = NLP.verbs().out("frequency");
+    acronyms = NLP.acronyms().out("frequency");
+
+    console.log("Time end nlp: " + Date.now())
+
+    console.log(topics)
 
     // set the number of words
     piedata[0].number = topics.length;
@@ -465,7 +473,7 @@ function updatePie(text) {
 
         .on("click", function (d, i) {
             wordCloudSVG.selectAll("*").remove();
-
+            console.log("Time start draw: " + Date.now())
             // set the word cloud layout
             layout = d3.layout.cloud()
                 .size([700, 400])
@@ -475,6 +483,7 @@ function updatePie(text) {
                 .fontSize(function (d) { return d.size; })
                 .on("end", function (d) { draw(d, i) })
                 .start();
+            console.log("Time end draw: " + Date.now())
         });
 
 }
