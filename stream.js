@@ -152,6 +152,10 @@ function onChangeStreamGraph() {
     var selectedData = null
     var possibleKeys = null
     if (selectedAspect == 'vote-average') {
+            barChartSVG.selectAll('*')
+        .remove()
+    wordCloudSVG.selectAll("*").remove();
+
         selectedData = dataByVote
         possibleKeys = ['unrated', 'awful', 'bad', 'so-so', 'good', 'excellent']
         overviews = []
@@ -168,6 +172,9 @@ function onChangeStreamGraph() {
             else return overviews[5].push(d['overview'])
         })
     } else if (selectedAspect == 'popularity') {
+                    barChartSVG.selectAll('*')
+        .remove()
+    wordCloudSVG.selectAll("*").remove();
         selectedData = dataByPopularity
         possibleKeys = ['very\_unpopular', 'unpopular', 'popular', 'very\_popular']
         overviews = []
@@ -229,7 +236,9 @@ function onChangeStreamGraph() {
     }
 
     mouseClickHandlerStreamGraph = function (d, i) {
+
         tooltipStreamGraph.innerHTML = "You have selected " + possibleKeys[i] + " movies!"
+        barChartSVG.selectAll('*').remove()
         pieChartSVG.selectAll("*").remove();
         wordCloudSVG.selectAll("*").remove();
         if (selectedStream != i) {
@@ -308,7 +317,6 @@ var tooltip = d3.select("body")
     .attr("class", "tooltip");
 
 
-
 pieChartSVG = d3.select("#pie-chart-SVG")
     .attr('width', 700)
     .attr('height', 500)
@@ -325,7 +333,7 @@ var height = 500;
 var r = Math.min(700, 500) / 2.5,
     color = d3.scaleOrdinal(d3.schemeCategory10),
     wordColor = d3.scaleOrdinal(d3.schemeCategory20),
-    topics = [], nouns = [], dates = [], people = [], verbs = [], acronyms = [],
+    topics = [], nouns = [], dates = [], people = [], verbs = [], acronyms = [],wholeWords=[],
     terms,
     text,
     layout,
@@ -396,9 +404,9 @@ function updatePie(text) {
         .attr("fill", "black");
 
     // NLP
-    // if (text.length > 30000) {
-    //     text = text.substring(0, 30000);
-    // }
+    if (text.length > 30000) {
+        text = text.substring(0, 30000);
+    }
     console.log("Time start nlp: " + Date.now())
 
     var NLP = nlp(text)
@@ -455,6 +463,7 @@ function updatePie(text) {
         .attr("text-anchor", "middle")
         .text(function (d, i) { return piedata[i].id; });
 
+
     arc.on("mouseover", function (d, i) {
         d3.select(this).select("path").attr("style", "fill-opacity:1;");
         tooltip.style("visibility", "visible")
@@ -494,7 +503,14 @@ function updatePie(text) {
 function draw(words, i) {
     wordCloudSVG.append("g")
         .append("text")
-        .text(function (d) { return "This is the word cloud of the " + " \"" + piedata[i].id + "\"" + " in the movie overview." })
+        .text(function (d) {
+                if(i !== -1){
+                    return "This is the word cloud of the " + " \"" + piedata[i].id + "\"" + " in the movie overview." 
+                } else{
+                    return "This is the word cloud of the all types of words in this segment"
+                }
+
+     })
         .attr("x", width / 2)
         .attr("y", 30)
         .attr("text-anchor", "middle")

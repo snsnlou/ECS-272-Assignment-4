@@ -12,7 +12,17 @@ var possibleKeysBarChart = ['topics', 'nouns', 'dates', 'people', 'verbs', 'acro
 
 var selectedBar = -1
 
+var tip = d3.select("#bar-chart")
+    .append("div")
+  .attr("class", "tip")
+    .style("position", "absolute")
+    .style("z-index", "10")
+    .style("visibility", "hidden");
+
 function initBarChart() {
+        pieChartSVG.selectAll("*").remove();
+        removePieChartElement();
+
     barChartInnerWidth = barChartWidth - barChartMargin.left - barChartMargin.right
     barChartInnerHeight = barChartHeight - barChartMargin.top - barChartMargin.bottom
     barWidth = (barChartInnerWidth / possibleKeysBarChart.length)
@@ -23,12 +33,26 @@ function initBarChart() {
         .append('g')
         .attr("transform",
             "translate(" + barChartMargin.left + ", " + barChartMargin.top + ")")
+
+}
+
+function removePieChartElement(){
+    var Piediv = document.getElementById('pie-chart');
+     Piediv.remove();  
 }
 
 function onChangeBarChart(text) {
+    // pieChartSVG.selectAll("*").remove();
+    // removePieChartElement();
 
     barChartSVG.selectAll('*')
         .remove()
+    wordCloudSVG.selectAll("*").remove();
+
+        // NLP
+    if (text.length > 30000) {
+        text = text.substring(0, 30000);
+    }
 
     var NLP = nlp(text)
     topics = NLP.topics().out("frequency");
@@ -37,6 +61,8 @@ function onChangeBarChart(text) {
     people = NLP.people().out("frequency");
     verbs = NLP.verbs().out("frequency");
     acronyms = NLP.acronyms().out("frequency");
+
+    wholeWords = topics.concat(nouns, dates, people, verbs, acronyms);
 
     var barChartData = [
         d3.sum(topics, function(d) {return d.count}),
@@ -61,11 +87,31 @@ function onChangeBarChart(text) {
     
     var yAxisBarChart = d3.axisLeft()
         .scale(d3.scaleLinear().domain([0, d3.max(barChartData)]).range([barChartInnerHeight, 0]))
+
+            //set the layout for the initial word cloud svg
+    layout = d3.layout.cloud()
+                .size([700, 400])
+                .words(wholeWords.map(function (d) { return { text: d.normal, size: +d.count * 20 }; }))
+                .padding(2)
+                .font("Impact")
+                .fontSize(function (d) { return d.size; })
+                .on("end", function (d) { draw(d, -1) })
+                .start();
+
     
     var mouseOverHandlerBarChart = function(d, i) {
+
         if(selectedBar != -1) return
         d3.select(this)
             .style('opacity', '0.7')
+
+
+         tip.text(barChartData[i])
+         .style("visibility", "visible")
+         .style("left", barWidth*i +140 + 'px')
+         .style("top",  910-yScaleBarChart(d) + 'px' )
+
+        
     }
 
     var mouseClickHandlerBarChart = function(d, i) {
@@ -79,6 +125,7 @@ function onChangeBarChart(text) {
                 .style('stroke', 'yellow')
                 .style('opacity', '0.7')
 
+            //set layout for initial view of wordcloud
             layout = d3.layout.cloud()
                 .size([700, 400])
                 .words(terms[i].map(function (d) { return { text: d.normal, size: +d.count * 20 }; }))
@@ -98,6 +145,7 @@ function onChangeBarChart(text) {
         if(selectedBar != -1) return
         barChartSVG.selectAll("rect")
             .style('opacity', '1')
+        tip.style("visibility", "hidden")
     }
 
     barChartSVG.selectAll("rect")
