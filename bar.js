@@ -1,4 +1,4 @@
-// Config of stream graph
+// Config of bar chart
 
 var barChartMargin = { top: 10, right: 10, bottom: 40, left: 60 }
 var barChartWidth = 400
@@ -47,7 +47,8 @@ function onChangeBarChart(text) {
 
     barChartSVG.selectAll('*')
         .remove()
-    wordCloudSVG.selectAll("*").remove();
+    tagCloudSVG.selectAll("*")
+        .remove();
 
     // NLP
     // if (text.length > 30000) {
@@ -76,7 +77,6 @@ function onChangeBarChart(text) {
         d3.sum(acronyms, function (d) { return d.count })
     ]
     var terms = [topics, nouns, dates, people, verbs, acronyms]
-    console.log(barChartData)
     var yScaleBarChart = d3.scaleLinear()
         .domain([0, d3.max(barChartData)])
         .range([0, barChartInnerHeight])
@@ -91,10 +91,10 @@ function onChangeBarChart(text) {
     var yAxisBarChart = d3.axisLeft()
         .scale(d3.scaleLinear().domain([0, d3.max(barChartData)]).range([barChartInnerHeight, 0]))
 
-    //set the layout for the initial word cloud svg
+    //set the layout for the initial tag cloud
     layout = d3.layout.cloud()
         .size([700, 400])
-        .words(wholeWords.slice(0, 100).map(function (d) { return { text: d.normal, size: 10 * Math.log(d.count) + 0.5 * d.count }; }))
+        .words(wholeWords.slice(0, 100).map(function (d) { return { text: d.normal, size: 5 * Math.log(d.count) + 0.5 * d.count }; }))
         .padding(2)
         .font("Impact")
         .fontSize(function (d) { return d.size; })
@@ -109,16 +109,12 @@ function onChangeBarChart(text) {
             .style('opacity', '0.7')
 
 
-        tip.text(barChartData[i])
-            .style("visibility", "visible")
-            .style("left", barWidth * i + 140 + 'px')
-            .style("top", 910 - yScaleBarChart(d) + 'px')
-
-
+        document.getElementById("tooltip-bar-chart").innerHTML = "<font color=\"red\">There are " + barChartData[i] + ' ' + possibleKeysBarChart[i] + ' in the chosen subset.</font>'
     }
 
     var mouseClickHandlerBarChart = function (d, i) {
-        wordCloudSVG.selectAll("*").remove();
+        tagCloudSVG.selectAll("*").remove();
+        document.getElementById("tooltip-bar-chart").innerHTML = "<font color=\"red\">There are " + barChartData[i] + ' ' + possibleKeysBarChart[i] + ' in the chosen subset.</font>'
         if (selectedBar != i) {
             selectedBar = i
             barChartSVG.selectAll("rect")
@@ -128,7 +124,7 @@ function onChangeBarChart(text) {
                 .style('stroke', 'yellow')
                 .style('opacity', '0.7')
 
-            //set layout for initial view of wordcloud
+            //set layout corresponding tagcloud
             layout = d3.layout.cloud()
                 .size([700, 400])
                 .words(terms[i].slice(0, 100).map(function (d) { return { text: d.normal, size: 5 * Math.log(d.count) + 1 * d.count }; }))
@@ -141,9 +137,10 @@ function onChangeBarChart(text) {
             selectedBar = -1
             d3.select(this)
                 .style('stroke', 'none')
+            // resume the initial tagcloud
             layout = d3.layout.cloud()
                 .size([700, 400])
-                .words(wholeWords.slice(0, 100).map(function (d) { return { text: d.normal, size: 5 * Math.log(d.count) + 1 * d.count }; }))
+                .words(wholeWords.slice(0, 100).map(function (d) { return { text: d.normal, size: 5 * Math.log(d.count) + 0.5 * d.count }; }))
                 .padding(2)
                 .font("Impact")
                 .fontSize(function (d) { return d.size; })
@@ -156,7 +153,7 @@ function onChangeBarChart(text) {
         if (selectedBar != -1) return
         barChartSVG.selectAll("rect")
             .style('opacity', '1')
-        tip.style("visibility", "hidden")
+        document.getElementById("tooltip-bar-chart").innerHTML = "Touch a bar to see the quantity!"
     }
 
     barChartSVG.selectAll("rect")
