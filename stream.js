@@ -152,9 +152,9 @@ function onChangeStreamGraph() {
     var selectedData = null
     var possibleKeys = null
     if (selectedAspect == 'vote-average') {
-            barChartSVG.selectAll('*')
-        .remove()
-    wordCloudSVG.selectAll("*").remove();
+        barChartSVG.selectAll('*')
+            .remove()
+        wordCloudSVG.selectAll("*").remove();
 
         selectedData = dataByVote
         possibleKeys = ['unrated', 'awful', 'bad', 'so-so', 'good', 'excellent']
@@ -172,9 +172,9 @@ function onChangeStreamGraph() {
             else return overviews[5].push(d['overview'])
         })
     } else if (selectedAspect == 'popularity') {
-                    barChartSVG.selectAll('*')
-        .remove()
-    wordCloudSVG.selectAll("*").remove();
+        barChartSVG.selectAll('*')
+            .remove()
+        wordCloudSVG.selectAll("*").remove();
         selectedData = dataByPopularity
         possibleKeys = ['very\_unpopular', 'unpopular', 'popular', 'very\_popular']
         overviews = []
@@ -239,7 +239,7 @@ function onChangeStreamGraph() {
 
         tooltipStreamGraph.innerHTML = "You have selected " + possibleKeys[i] + " movies!"
         barChartSVG.selectAll('*').remove()
-        pieChartSVG.selectAll("*").remove();
+        // pieChartSVG.selectAll("*").remove();
         wordCloudSVG.selectAll("*").remove();
         if (selectedStream != i) {
             selectedStream = i
@@ -317,9 +317,9 @@ var tooltip = d3.select("body")
     .attr("class", "tooltip");
 
 
-pieChartSVG = d3.select("#pie-chart-SVG")
-    .attr('width', 700)
-    .attr('height', 500)
+// pieChartSVG = d3.select("#pie-chart-SVG")
+//     .attr('width', 700)
+//     .attr('height', 500)
 // .attr("class", "svg2")
 
 wordCloudSVG = d3.select("#word-cloud-SVG")
@@ -332,18 +332,18 @@ var height = 500;
 
 var r = Math.min(700, 500) / 2.5,
     color = d3.scaleOrdinal(d3.schemeCategory10),
-    wordColor = d3.scaleOrdinal(d3.schemeCategory20),
-    topics = [], nouns = [], dates = [], people = [], verbs = [], acronyms = [],wholeWords=[],
-    terms,
-    text,
-    layout,
+    wordColor = d3.scaleOrdinal(d3.schemeCategory20)
+//     topics = [], nouns = [], dates = [], people = [], verbs = [], acronyms = [],wholeWords=[],
+//     terms,
+//     text,
+//     layout,
 
-    piedata = [{ "id": "Topics", "number": 0 },
-    { "id": "Nouns", "number": 0 },
-    { "id": "Dates", "number": 0 },
-    { "id": "People", "number": 0 },
-    { "id": "Verbs", "number": 0 },
-    { "id": "Acronyms", "number": 0 }];
+//     piedata = [{ "id": "Topics", "number": 0 },
+//     { "id": "Nouns", "number": 0 },
+//     { "id": "Dates", "number": 0 },
+//     { "id": "People", "number": 0 },
+//     { "id": "Verbs", "number": 0 },
+//     { "id": "Acronyms", "number": 0 }];
 
 // d3.csv('./datasets/tmdb\_5000\_movies.csv').then(function(d) {
 //     var data = [];
@@ -389,113 +389,113 @@ var r = Math.min(700, 500) / 2.5,
 
 
 // create and update the pie chart
-function updatePie(text) {
-    pieChartSVG.selectAll("*").remove();
-    wordCloudSVG.selectAll("*").remove();
-    // add a text instruction
-    pieChartSVG.append("g")
-        .append("text")
-        .text(function (d) { return "Select one term to reveal the word cloud below" })
-        .attr("x", width / 2)
-        .attr("y", 15)
-        .attr("text-anchor", "middle")
-        .attr("font-family", "sans-serif")
-        .attr("font-size", "16px")
-        .attr("fill", "black");
+// function updatePie(text) {
+//     pieChartSVG.selectAll("*").remove();
+//     wordCloudSVG.selectAll("*").remove();
+//     // add a text instruction
+//     pieChartSVG.append("g")
+//         .append("text")
+//         .text(function (d) { return "Select one term to reveal the word cloud below" })
+//         .attr("x", width / 2)
+//         .attr("y", 15)
+//         .attr("text-anchor", "middle")
+//         .attr("font-family", "sans-serif")
+//         .attr("font-size", "16px")
+//         .attr("fill", "black");
 
-    // NLP
-    if (text.length > 30000) {
-        text = text.substring(0, 30000);
-    }
-    console.log("Time start nlp: " + Date.now())
+//     // NLP
+//     if (text.length > 30000) {
+//         text = text.substring(0, 30000);
+//     }
+//     console.log("Time start nlp: " + Date.now())
 
-    var NLP = nlp(text)
+//     var NLP = nlp(text)
 
-    topics = NLP.topics().out("frequency");
-    nouns = NLP.nouns().out("frequency");
-    dates = NLP.dates().out("frequency");
-    people = NLP.people().out("frequency");
-    verbs = NLP.verbs().out("frequency");
-    acronyms = NLP.acronyms().out("frequency");
+//     topics = NLP.topics().out("frequency");
+//     nouns = NLP.nouns().out("frequency");
+//     dates = NLP.dates().out("frequency");
+//     people = NLP.people().out("frequency");
+//     verbs = NLP.verbs().out("frequency");
+//     acronyms = NLP.acronyms().out("frequency");
 
-    console.log("Time end nlp: " + Date.now())
+//     console.log("Time end nlp: " + Date.now())
 
-    console.log(topics)
+//     console.log(topics)
 
-    // set the number of words
-    piedata[0].number = topics.length;
-    piedata[1].number = nouns.length;
-    piedata[2].number = dates.length;
-    piedata[3].number = people.length;
-    piedata[4].number = verbs.length;
-    piedata[5].number = acronyms.length;
-    terms = [topics, nouns, dates, people, verbs, acronyms];
+//     // set the number of words
+//     piedata[0].number = topics.length;
+//     piedata[1].number = nouns.length;
+//     piedata[2].number = dates.length;
+//     piedata[3].number = people.length;
+//     piedata[4].number = verbs.length;
+//     piedata[5].number = acronyms.length;
+//     terms = [topics, nouns, dates, people, verbs, acronyms];
 
-    var pie = d3.pie()
-        .value(function (d) { return d.number; });
+//     var pie = d3.pie()
+//         .value(function (d) { return d.number; });
 
-    var path = d3.arc()
-        .outerRadius(r)
-        .innerRadius(0);
+//     var path = d3.arc()
+//         .outerRadius(r)
+//         .innerRadius(0);
 
-    var label = d3.arc()
-        .outerRadius(r - 100)
-        .innerRadius(r - 50);
+//     var label = d3.arc()
+//         .outerRadius(r - 100)
+//         .innerRadius(r - 50);
 
-    var arc = pieChartSVG.selectAll(".slice")
-        .data(pie(piedata))
-        .enter()
-        .append("g")
-        .attr("class", "slice")
-        .attr("transform", "translate(" + width / 2 + "," + (height / 2 + 15) + ")")
-        .style("cursor", "pointer");
+//     var arc = pieChartSVG.selectAll(".slice")
+//         .data(pie(piedata))
+//         .enter()
+//         .append("g")
+//         .attr("class", "slice")
+//         .attr("transform", "translate(" + width / 2 + "," + (height / 2 + 15) + ")")
+//         .style("cursor", "pointer");
 
-    arc.append("path")
-        .attr("d", path)
-        .attr("stroke", "blue")
-        .attr("fill", function (d, i) { return color(i); })
-        .attr("style", "fill-opacity:0.85;")
+//     arc.append("path")
+//         .attr("d", path)
+//         .attr("stroke", "blue")
+//         .attr("fill", function (d, i) { return color(i); })
+//         .attr("style", "fill-opacity:0.85;")
 
-    arc.append("text")
-        .attr("transform", function (d) {
-            return "translate(" + label.centroid(d) + ")";
-        })
-        .attr("text-anchor", "middle")
-        .text(function (d, i) { return piedata[i].id; });
+//     arc.append("text")
+//         .attr("transform", function (d) {
+//             return "translate(" + label.centroid(d) + ")";
+//         })
+//         .attr("text-anchor", "middle")
+//         .text(function (d, i) { return piedata[i].id; });
 
 
-    arc.on("mouseover", function (d, i) {
-        d3.select(this).select("path").attr("style", "fill-opacity:1;");
-        tooltip.style("visibility", "visible")
-            .html("Number of Words = " + terms[i].length);
-    })
+//     arc.on("mouseover", function (d, i) {
+//         d3.select(this).select("path").attr("style", "fill-opacity:1;");
+//         tooltip.style("visibility", "visible")
+//             .html("Number of Words = " + terms[i].length);
+//     })
 
-        .on("mousemove", function () {
-            tooltip.style("top", (event.pageY - 20) + "px")
-                .style("left", (event.pageX + 5) + "px");
-        })
+//         .on("mousemove", function () {
+//             tooltip.style("top", (event.pageY - 20) + "px")
+//                 .style("left", (event.pageX + 5) + "px");
+//         })
 
-        .on("mouseout", function () {
-            d3.select(this).select("path").attr("style", "fill-opacity:0.85;");
-            tooltip.style("visibility", "hidden");
-        })
+//         .on("mouseout", function () {
+//             d3.select(this).select("path").attr("style", "fill-opacity:0.85;");
+//             tooltip.style("visibility", "hidden");
+//         })
 
-        .on("click", function (d, i) {
-            wordCloudSVG.selectAll("*").remove();
-            console.log("Time start draw: " + Date.now())
-            // set the word cloud layout
-            layout = d3.layout.cloud()
-                .size([700, 400])
-                .words(terms[i].map(function (d) { return { text: d.normal, size: +d.count * 20 }; }))
-                .padding(2)
-                .font("Impact")
-                .fontSize(function (d) { return d.size; })
-                .on("end", function (d) { draw(d, i) })
-                .start();
-            console.log("Time end draw: " + Date.now())
-        });
+//         .on("click", function (d, i) {
+//             wordCloudSVG.selectAll("*").remove();
+//             console.log("Time start draw: " + Date.now())
+//             // set the word cloud layout
+//             layout = d3.layout.cloud()
+//                 .size([700, 400])
+//                 .words(terms[i].map(function (d) { return { text: d.normal, size: +d.count * 20 }; }))
+//                 .padding(2)
+//                 .font("Impact")
+//                 .fontSize(function (d) { return d.size; })
+//                 .on("end", function (d) { draw(d, i) })
+//                 .start();
+//             console.log("Time end draw: " + Date.now())
+//         });
 
-}
+// }
 
 
 //third vis
@@ -504,13 +504,13 @@ function draw(words, i) {
     wordCloudSVG.append("g")
         .append("text")
         .text(function (d) {
-                if(i !== -1){
-                    return "This is the word cloud of the " + " \"" + piedata[i].id + "\"" + " in the movie overview." 
-                } else{
-                    return "This is the word cloud of the all types of words in this segment"
-                }
+            if (i !== -1) {
+                return "This is the tag cloud of the " + " \"" + possibleKeysBarChart[i] + "\"" + " in the movie overview."
+            } else {
+                return "This is the tag cloud of the all types of words in this segment"
+            }
 
-     })
+        })
         .attr("x", width / 2)
         .attr("y", 30)
         .attr("text-anchor", "middle")

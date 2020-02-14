@@ -14,14 +14,14 @@ var selectedBar = -1
 
 var tip = d3.select("#bar-chart")
     .append("div")
-  .attr("class", "tip")
+    .attr("class", "tip")
     .style("position", "absolute")
     .style("z-index", "10")
     .style("visibility", "hidden");
 
 function initBarChart() {
-        pieChartSVG.selectAll("*").remove();
-        removePieChartElement();
+    // pieChartSVG.selectAll("*").remove();
+    // removePieChartElement();
 
     barChartInnerWidth = barChartWidth - barChartMargin.left - barChartMargin.right
     barChartInnerHeight = barChartHeight - barChartMargin.top - barChartMargin.bottom
@@ -36,10 +36,10 @@ function initBarChart() {
 
 }
 
-function removePieChartElement(){
-    var Piediv = document.getElementById('pie-chart');
-     Piediv.remove();  
-}
+// function removePieChartElement(){
+//     var Piediv = document.getElementById('pie-chart');
+//      Piediv.remove();  
+// }
 
 function onChangeBarChart(text) {
     // pieChartSVG.selectAll("*").remove();
@@ -49,10 +49,10 @@ function onChangeBarChart(text) {
         .remove()
     wordCloudSVG.selectAll("*").remove();
 
-        // NLP
-    if (text.length > 30000) {
-        text = text.substring(0, 30000);
-    }
+    // NLP
+    // if (text.length > 30000) {
+    //     text = text.substring(0, 30000);
+    // }
 
     var NLP = nlp(text)
     topics = NLP.topics().out("frequency");
@@ -63,60 +63,63 @@ function onChangeBarChart(text) {
     acronyms = NLP.acronyms().out("frequency");
 
     wholeWords = topics.concat(nouns, dates, people, verbs, acronyms);
+    wholeWords.sort(function (a, b) {
+        return (a.count > b.count) ? -1 : 1
+    })
 
     var barChartData = [
-        d3.sum(topics, function(d) {return d.count}),
-        d3.sum(nouns, function(d) {return d.count}),
-        d3.sum(dates, function(d) {return d.count}),
-        d3.sum(people, function(d) {return d.count}),
-        d3.sum(verbs, function(d) {return d.count}),
-        d3.sum(acronyms, function(d) {return d.count})
+        d3.sum(topics, function (d) { return d.count }),
+        d3.sum(nouns, function (d) { return d.count }),
+        d3.sum(dates, function (d) { return d.count }),
+        d3.sum(people, function (d) { return d.count }),
+        d3.sum(verbs, function (d) { return d.count }),
+        d3.sum(acronyms, function (d) { return d.count })
     ]
     var terms = [topics, nouns, dates, people, verbs, acronyms]
     console.log(barChartData)
     var yScaleBarChart = d3.scaleLinear()
         .domain([0, d3.max(barChartData)])
         .range([0, barChartInnerHeight])
-    
+
     var xScaleBarChart = d3.scalePoint()
         .domain(possibleKeysBarChart)
         .range([barWidth / 2, barChartInnerWidth - barWidth / 2 - barPadding])
-    
+
     var xAxisBarChart = d3.axisBottom()
         .scale(xScaleBarChart)
-    
+
     var yAxisBarChart = d3.axisLeft()
         .scale(d3.scaleLinear().domain([0, d3.max(barChartData)]).range([barChartInnerHeight, 0]))
 
-            //set the layout for the initial word cloud svg
+    //set the layout for the initial word cloud svg
     layout = d3.layout.cloud()
-                .size([700, 400])
-                .words(wholeWords.map(function (d) { return { text: d.normal, size: +d.count * 20 }; }))
-                .padding(2)
-                .font("Impact")
-                .fontSize(function (d) { return d.size; })
-                .on("end", function (d) { draw(d, -1) })
-                .start();
+        .size([700, 400])
+        .words(wholeWords.slice(0, 100).map(function (d) { return { text: d.normal, size: 10 * Math.log(d.count) + 0.5 * d.count }; }))
+        .padding(2)
+        .font("Impact")
+        .fontSize(function (d) { return d.size; })
+        .on("end", function (d) { draw(d, -1) })
+        .start();
 
-    
-    var mouseOverHandlerBarChart = function(d, i) {
 
-        if(selectedBar != -1) return
+    var mouseOverHandlerBarChart = function (d, i) {
+
+        if (selectedBar != -1) return
         d3.select(this)
             .style('opacity', '0.7')
 
 
-         tip.text(barChartData[i])
-         .style("visibility", "visible")
-         .style("left", barWidth*i +140 + 'px')
-         .style("top",  910-yScaleBarChart(d) + 'px' )
+        tip.text(barChartData[i])
+            .style("visibility", "visible")
+            .style("left", barWidth * i + 140 + 'px')
+            .style("top", 910 - yScaleBarChart(d) + 'px')
 
-        
+
     }
 
-    var mouseClickHandlerBarChart = function(d, i) {
+    var mouseClickHandlerBarChart = function (d, i) {
         wordCloudSVG.selectAll("*").remove();
-        if(selectedBar != i) {
+        if (selectedBar != i) {
             selectedBar = i
             barChartSVG.selectAll("rect")
                 .style('stroke', 'none')
@@ -128,7 +131,7 @@ function onChangeBarChart(text) {
             //set layout for initial view of wordcloud
             layout = d3.layout.cloud()
                 .size([700, 400])
-                .words(terms[i].map(function (d) { return { text: d.normal, size: +d.count * 20 }; }))
+                .words(terms[i].slice(0, 100).map(function (d) { return { text: d.normal, size: 5 * Math.log(d.count) + 1 * d.count }; }))
                 .padding(2)
                 .font("Impact")
                 .fontSize(function (d) { return d.size; })
@@ -138,11 +141,19 @@ function onChangeBarChart(text) {
             selectedBar = -1
             d3.select(this)
                 .style('stroke', 'none')
+            layout = d3.layout.cloud()
+                .size([700, 400])
+                .words(wholeWords.slice(0, 100).map(function (d) { return { text: d.normal, size: 5 * Math.log(d.count) + 1 * d.count }; }))
+                .padding(2)
+                .font("Impact")
+                .fontSize(function (d) { return d.size; })
+                .on("end", function (d) { draw(d, -1) })
+                .start();
         }
     }
 
-    var mouseLeaveHandlerBarChart = function(d, i) {
-        if(selectedBar != -1) return
+    var mouseLeaveHandlerBarChart = function (d, i) {
+        if (selectedBar != -1) return
         barChartSVG.selectAll("rect")
             .style('opacity', '1')
         tip.style("visibility", "hidden")
@@ -152,15 +163,15 @@ function onChangeBarChart(text) {
         .data(barChartData)
         .enter()
         .append("rect")
-        .attr("y", function(d) {
+        .attr("y", function (d) {
             return barChartInnerHeight - yScaleBarChart(d)
         })
-        .attr("height", function(d) {
+        .attr("height", function (d) {
             return yScaleBarChart(d)
         })
         .attr("width", barWidth - barPadding)
         .attr("fill", "#0080FF")
-        .attr("x", function(d, i) {
+        .attr("x", function (d, i) {
             return barWidth * i
         })
         .on("mouseover", mouseOverHandlerBarChart)
@@ -170,7 +181,7 @@ function onChangeBarChart(text) {
     barChartSVG.append('g')
         .attr('transform', 'translate(0, ' + barChartInnerHeight + ')')
         .call(xAxisBarChart)
-    
+
     barChartSVG.append('g')
         .call(yAxisBarChart)
 }
